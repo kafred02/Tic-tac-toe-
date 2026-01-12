@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tic Tac Toe 🙂 vs 🙃</title>
+
+  <style>
+    :root { --cell: 110px; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #0b1020;
+      color: #eaf0ff;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    .wrap {
+      width: min(520px, 95vw);
+      background: #121a33;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 16px 45px rgba(0,0,0,.45);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    h1 { margin: 0 0 6px; font-size: 16px; }
+    p  { margin: 0 0 12px; font-size: 12px; color: rgba(234,240,255,.7); }
+
+    .hud {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .status, .score {
+      background: rgba(255,255,255,.06);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 13px;
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, var(--cell));
+      grid-template-rows: repeat(3, var(--cell));
+      gap: 10px;
+      justify-content: center;
+      margin: 10px 0;
+    }
+
+    .cell {
+      width: var(--cell);
+      height: var(--cell);
+      border-radius: 18px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      display: grid;
+      place-items: center;
+      font-size: 44px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .cell:hover { background: rgba(255,255,255,.14); }
+    .cell.disabled { opacity: .55; cursor: not-allowed; }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.1);
+      color: #eaf0ff;
+      cursor: pointer;
+    }
+
+    button[disabled] { opacity: .5; cursor: not-allowed; }
+
+    @media (max-width: 420px) {
+      :root { --cell: 90px; }
+      .cell { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>Tic Tac Toe 🙂 vs 🙃</h1>
+  <p>You are 🙂. Computer is 🙃. First to 2 wins the match.</p>
+
+  <div class="hud">
+    <div class="status" id="status">Your turn 🙂</div>
+    <div class="score" id="score">🙂 0 — 0 🙃</div>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="controls">
+    <button id="next" disabled>Next round</button>
+    <button id="reset">Reset match</button>
+  </div>
+</div>
+
+<script>
+const HUMAN = "🙂";
+const CPU = "🙃";
+const WINS = [
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
+];
+
+let board, roundOver, humanScore, cpuScore;
+
+const boardEl = document.getElementById("board");
+const statusEl = document.getElementById("status");
+const scoreEl  = document.getElementById("score");
+const nextBtn  = document.getElementById("next");
+const resetBtn = document.getElementById("reset");
+
+function initRound() {
+  board = Array(9).fill("");
+  roundOver = false;
+  render();
+  statusEl.textContent = "Your turn 🙂";
+  nextBtn.disabled = true;
+}
+
+function render() {
+  boardEl.innerHTML = "";
+  board.forEach((v, i) => {
+    const c = document.createElement("div");
+    c.className = "cell" + (roundOver || v ? " disabled" : "");
+    c.textContent = v;
+    c.onclick = () => humanMove(i);
+    boardEl.appendChild(c);
+  });
+  scoreEl.textContent = `🙂 ${humanScore} — ${cpuScore} 🙃`;
+}
+
+function winner(sym) {
+  return WINS.some(line => line.every(i => board[i] === sym));
+}
+
+function humanMove(i) {
+  if (roundOver || board[i]) return;
+  board[i] = HUMAN;
+
+  if (winner(HUMAN)) return endRound("🙂 wins the round!", true);
+
+  if (board.every(Boolean)) return endRound("Draw — no points");
+
+  cpuMove();
+}
+
+function cpuMove() {
+  const empty = board.map((v,i) => v ? null : i).filter(v => v !== null);
+  const move = empty[Math.floor(Math.random() * empty.length)];
+  board[move] = CPU;
+
+  if (winner(CPU)) return endRound("🙃 wins the round!", false);
+
+  render();
+  statusEl.textContent = "Your turn 🙂";
+}
+
+function endRound(msg, humanWon) {
+  roundOver = true;
+  if (humanWon === true) humanScore++;
+  if (humanWon === false) cpuScore++;
+  render();
+  statusEl.textContent = msg;
+  nextBtn.disabled = false;
+}
+
+nextBtn.onclick = () => initRound();
+
+resetBtn.onclick = () => {
+  humanScore = 0;
+  cpuScore = 0;
+  initRound();
+};
+
+humanScore = 0;
+cpuScore = 0;
+initRound();
+</script>
+
+</body>
+</html>
